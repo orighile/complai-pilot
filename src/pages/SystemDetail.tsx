@@ -5,10 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, PlayCircle } from "lucide-react";
+import { ArrowLeft, FileText, PlayCircle, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AssessmentRunner } from "@/components/AssessmentRunner";
 import { DocumentGenerator } from "@/components/DocumentGenerator";
+import { TaskDialog } from "@/components/TaskDialog";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SystemDetail() {
@@ -22,6 +23,8 @@ export default function SystemDetail() {
   const [loading, setLoading] = useState(true);
   const [showAssessmentRunner, setShowAssessmentRunner] = useState(false);
   const [showDocumentGenerator, setShowDocumentGenerator] = useState(false);
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   useEffect(() => {
     if (id) {
@@ -257,8 +260,16 @@ export default function SystemDetail() {
         <TabsContent value="tasks">
           <Card>
             <CardHeader>
-              <CardTitle>Related Tasks</CardTitle>
-              <CardDescription>Tasks associated with this AI system</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Related Tasks</CardTitle>
+                  <CardDescription>Tasks associated with this AI system</CardDescription>
+                </div>
+                <Button size="sm" onClick={() => { setSelectedTask(null); setShowTaskDialog(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Task
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <Table>
@@ -274,18 +285,22 @@ export default function SystemDetail() {
                 <TableBody>
                   {tasks.length > 0 ? (
                     tasks.map((task) => (
-                      <TableRow key={task.id}>
+                      <TableRow
+                        key={task.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => { setSelectedTask(task); setShowTaskDialog(true); }}
+                      >
                         <TableCell>{task.title}</TableCell>
                         <TableCell>{task.owner || "-"}</TableCell>
-                        <TableCell><Badge>{task.status}</Badge></TableCell>
+                        <TableCell><Badge>{task.status.replace(/_/g, ' ')}</Badge></TableCell>
                         <TableCell><Badge>{task.priority}</Badge></TableCell>
-                        <TableCell>{task.due_date || "-"}</TableCell>
+                        <TableCell>{task.due_date ? new Date(task.due_date).toLocaleDateString() : "-"}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                        No tasks yet.
+                        No tasks yet. Create a task to get started.
                       </TableCell>
                     </TableRow>
                   )}
@@ -308,6 +323,14 @@ export default function SystemDetail() {
         onOpenChange={setShowDocumentGenerator}
         systemId={system.id}
         assessments={assessments}
+        onComplete={fetchSystemData}
+      />
+
+      <TaskDialog
+        open={showTaskDialog}
+        onOpenChange={setShowTaskDialog}
+        task={selectedTask}
+        systemId={system.id}
         onComplete={fetchSystemData}
       />
     </div>
