@@ -3,7 +3,18 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { AuthProvider } from "./components/AuthProvider";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { Layout } from "./components/Layout";
+import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import AISystems from "./pages/AISystems";
+import AISystems from "./pages/AISystems";
+import NewSystem from "./pages/NewSystem";
+import Assessments from "./pages/Assessments";
+import Tasks from "./pages/Tasks";
+import Documents from "./pages/Documents";
+import Evidence from "./pages/Evidence";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -14,11 +25,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+            <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
+            <Route path="/systems" element={<ProtectedRoute><Layout><AISystems /></Layout></ProtectedRoute>} />
+            <Route path="/systems/new" element={<ProtectedRoute><Layout><NewSystem /></Layout></ProtectedRoute>} />
+            <Route path="/assessments" element={<ProtectedRoute><Layout><Assessments /></Layout></ProtectedRoute>} />
+            <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
+            <Route path="/documents" element={<ProtectedRoute><Layout><Documents /></Layout></ProtectedRoute>} />
+            <Route path="/evidence" element={<ProtectedRoute><Layout><Evidence /></Layout></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
