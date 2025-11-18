@@ -203,9 +203,9 @@ Respond in JSON format with: iso_readiness_score, risk_level, recommended_action
     });
   } catch (error) {
     console.error('Error in run-assessment function:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: "An error occurred processing your assessment request" }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 });
