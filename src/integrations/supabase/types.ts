@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           business_unit: string | null
           created_at: string | null
-          created_by: string | null
+          created_by: string
           data_type: string | null
           deployment_environment: string | null
           description: string | null
@@ -34,7 +34,7 @@ export type Database = {
         Insert: {
           business_unit?: string | null
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           data_type?: string | null
           deployment_environment?: string | null
           description?: string | null
@@ -50,7 +50,7 @@ export type Database = {
         Update: {
           business_unit?: string | null
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           data_type?: string | null
           deployment_environment?: string | null
           description?: string | null
@@ -70,7 +70,7 @@ export type Database = {
           ai_system_id: string | null
           assessment_data: Json | null
           created_at: string | null
-          created_by: string | null
+          created_by: string
           eu_ai_act_category: string | null
           id: string
           iso_readiness_score: number | null
@@ -84,7 +84,7 @@ export type Database = {
           ai_system_id?: string | null
           assessment_data?: Json | null
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           eu_ai_act_category?: string | null
           id?: string
           iso_readiness_score?: number | null
@@ -98,7 +98,7 @@ export type Database = {
           ai_system_id?: string | null
           assessment_data?: Json | null
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           eu_ai_act_category?: string | null
           id?: string
           iso_readiness_score?: number | null
@@ -124,7 +124,7 @@ export type Database = {
           assessment_id: string | null
           content: string
           created_at: string | null
-          created_by: string | null
+          created_by: string
           id: string
           title: string
           type: string
@@ -135,7 +135,7 @@ export type Database = {
           assessment_id?: string | null
           content: string
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           id?: string
           title: string
           type: string
@@ -146,7 +146,7 @@ export type Database = {
           assessment_id?: string | null
           content?: string
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           id?: string
           title?: string
           type?: string
@@ -178,7 +178,7 @@ export type Database = {
           file_path: string
           file_size: number | null
           id: string
-          uploaded_by: string | null
+          uploaded_by: string
         }
         Insert: {
           ai_system_id?: string | null
@@ -188,7 +188,7 @@ export type Database = {
           file_path: string
           file_size?: number | null
           id?: string
-          uploaded_by?: string | null
+          uploaded_by?: string
         }
         Update: {
           ai_system_id?: string | null
@@ -198,7 +198,7 @@ export type Database = {
           file_path?: string
           file_size?: number | null
           id?: string
-          uploaded_by?: string | null
+          uploaded_by?: string
         }
         Relationships: [
           {
@@ -246,7 +246,7 @@ export type Database = {
           ai_system_id: string | null
           assessment_id: string | null
           created_at: string | null
-          created_by: string | null
+          created_by: string
           description: string | null
           due_date: string | null
           id: string
@@ -260,7 +260,7 @@ export type Database = {
           ai_system_id?: string | null
           assessment_id?: string | null
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           description?: string | null
           due_date?: string | null
           id?: string
@@ -274,7 +274,7 @@ export type Database = {
           ai_system_id?: string | null
           assessment_id?: string | null
           created_at?: string | null
-          created_by?: string | null
+          created_by?: string
           description?: string | null
           due_date?: string | null
           id?: string
