@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AISystems from "./pages/AISystems";
 import NewSystem from "./pages/NewSystem";
+import SystemDetail from "./pages/SystemDetail";
 import Assessments from "./pages/Assessments";
 import Tasks from "./pages/Tasks";
 import Documents from "./pages/Documents";
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/dashboard" element={<ProtectedRoute><Layout><Dashboard /></Layout></ProtectedRoute>} />
             <Route path="/systems" element={<ProtectedRoute><Layout><AISystems /></Layout></ProtectedRoute>} />
             <Route path="/systems/new" element={<ProtectedRoute><Layout><NewSystem /></Layout></ProtectedRoute>} />
+            <Route path="/systems/:id" element={<ProtectedRoute><Layout><SystemDetail /></Layout></ProtectedRoute>} />
             <Route path="/assessments" element={<ProtectedRoute><Layout><Assessments /></Layout></ProtectedRoute>} />
             <Route path="/tasks" element={<ProtectedRoute><Layout><Tasks /></Layout></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Layout><Documents /></Layout></ProtectedRoute>} />
