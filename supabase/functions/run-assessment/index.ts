@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +14,24 @@ serve(async (req) => {
   }
 
   try {
-    const { systemId, template } = await req.json();
+    const requestSchema = z.object({
+      systemId: z.string().uuid({ message: "Invalid system ID format" }),
+      template: z.enum(['eu_ai_act', 'nist_ai_rmf', 'iso_42001'], {
+        errorMap: () => ({ message: "Invalid template. Must be eu_ai_act, nist_ai_rmf, or iso_42001" })
+      })
+    });
+
+    const body = await req.json();
+    const validationResult = requestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request parameters", details: validationResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { systemId, template } = validationResult.data;
     
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

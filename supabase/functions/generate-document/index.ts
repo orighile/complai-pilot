@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +14,25 @@ serve(async (req) => {
   }
 
   try {
-    const { systemId, assessmentId, type } = await req.json();
+    const requestSchema = z.object({
+      systemId: z.string().uuid({ message: "Invalid system ID format" }),
+      assessmentId: z.string().uuid({ message: "Invalid assessment ID format" }).optional(),
+      type: z.enum(['acceptable_use_policy', 'system_card', 'risk_summary'], {
+        errorMap: () => ({ message: "Invalid document type" })
+      })
+    });
+
+    const body = await req.json();
+    const validationResult = requestSchema.safeParse(body);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request parameters", details: validationResult.error.issues }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { systemId, assessmentId, type } = validationResult.data;
     
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -137,8 +156,7 @@ Format as an executive-ready risk document.`;
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
+      console.error('AI Gateway error:', response.status);
       throw new Error('Failed to generate document');
     }
 
@@ -150,9 +168,9 @@ Format as an executive-ready risk document.`;
     });
   } catch (error) {
     console.error('Error in generate-document function:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ error: "An error occurred generating your document" }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
   }
 });
