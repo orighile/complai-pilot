@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Database, Shield, CheckCircle, AlertCircle, FileText, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { generateSampleData } from "@/lib/sampleData";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
+  const { toast } = useToast();
   const [stats, setStats] = useState({
     totalSystems: 0,
     highRiskSystems: 0,
@@ -13,6 +17,7 @@ export default function Dashboard() {
   });
   const [riskDistribution, setRiskDistribution] = useState<any[]>([]);
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -82,11 +87,40 @@ export default function Dashboard() {
     setRecentActivity(activity);
   };
 
+  const handleGenerateSampleData = async () => {
+    try {
+      setLoading(true);
+      const result = await generateSampleData();
+      
+      toast({
+        title: "Success",
+        description: `Generated ${result.data.systems} systems, ${result.data.assessments} assessments, ${result.data.tasks} tasks, and ${result.data.documents} documents`,
+      });
+      
+      // Refresh dashboard data
+      fetchDashboardData();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate sample data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your AI compliance posture</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">Overview of your AI compliance posture</p>
+        </div>
+        <Button onClick={handleGenerateSampleData} disabled={loading} variant="outline">
+          <Database className="h-4 w-4 mr-2" />
+          {loading ? "Generating..." : "Generate Sample Data"}
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
