@@ -8,6 +8,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { useEffect } from "react";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address").max(255, "Email must be less than 255 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(100, "Password must be less than 100 characters"),
+});
+
+const signupSchema = loginSchema.extend({
+  fullName: z.string().trim().min(1, "Full name is required").max(100, "Name must be less than 100 characters"),
+});
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -31,9 +41,12 @@ export default function Auth() {
 
     try {
       if (isLogin) {
+        // Validate login credentials
+        const validatedData = loginSchema.parse({ email, password });
+
         const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+          email: validatedData.email,
+          password: validatedData.password,
         });
 
         if (error) throw error;
@@ -44,12 +57,15 @@ export default function Auth() {
         });
         navigate("/dashboard");
       } else {
+        // Validate signup credentials
+        const validatedData = signupSchema.parse({ email, password, fullName });
+
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: validatedData.email,
+          password: validatedData.password,
           options: {
             data: {
-              full_name: fullName,
+              full_name: validatedData.fullName,
             },
             emailRedirectTo: `${window.location.origin}/dashboard`,
           },
@@ -64,11 +80,19 @@ export default function Auth() {
         setIsLogin(true);
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.message || "An error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

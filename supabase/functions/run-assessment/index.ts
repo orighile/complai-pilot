@@ -44,14 +44,18 @@ serve(async (req) => {
     );
 
     // Fetch AI system data
-    const { data: system } = await supabaseClient
+    const { data: system, error: systemError } = await supabaseClient
       .from('ai_systems')
       .select('*')
       .eq('id', systemId)
       .single();
 
-    if (!system) {
-      throw new Error('System not found');
+    if (systemError || !system) {
+      console.error('Failed to fetch system:', systemError);
+      return new Response(
+        JSON.stringify({ error: 'Unable to retrieve the requested resource' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Prepare assessment prompts based on template
@@ -119,7 +123,11 @@ Respond in JSON format with: iso_readiness_score, risk_level, recommended_action
     // Call Lovable AI with structured output
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+      console.error('LOVABLE_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'Service temporarily unavailable' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -139,8 +147,11 @@ Respond in JSON format with: iso_readiness_score, risk_level, recommended_action
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI Gateway error:', response.status, errorText);
-      throw new Error('Failed to run assessment');
+      console.error('AI Gateway error:', { status: response.status, error: errorText });
+      return new Response(
+        JSON.stringify({ error: 'Unable to process assessment. Please try again later.' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const data = await response.json();
@@ -204,7 +215,7 @@ Respond in JSON format with: iso_readiness_score, risk_level, recommended_action
   } catch (error) {
     console.error('Error in run-assessment function:', error);
     return new Response(
-      JSON.stringify({ error: "An error occurred processing your assessment request" }),
+      JSON.stringify({ error: 'An unexpected error occurred. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

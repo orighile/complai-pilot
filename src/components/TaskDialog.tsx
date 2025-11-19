@@ -8,6 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { z } from "zod";
+
+const taskSchema = z.object({
+  title: z.string().trim().min(1, "Task title is required").max(200, "Title must be less than 200 characters"),
+  description: z.string().trim().max(2000, "Description must be less than 2000 characters").optional().or(z.literal("")),
+  owner: z.string().trim().max(100, "Owner name must be less than 100 characters").optional().or(z.literal("")),
+  status: z.enum(["open", "in_progress", "completed", "blocked"]),
+  priority: z.enum(["low", "medium", "high", "critical"]),
+  due_date: z.string().optional().or(z.literal("")),
+});
 
 interface TaskDialogProps {
   open: boolean;
@@ -51,25 +61,26 @@ export function TaskDialog({ open, onOpenChange, task, systemId, assessmentId, o
   };
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      toast({
-        title: "Error",
-        description: "Task title is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
       setLoading(true);
 
-      const taskData = {
-        title: title.trim(),
-        description: description.trim() || null,
-        owner: owner.trim() || null,
+      // Validate form data
+      const validatedData = taskSchema.parse({
+        title,
+        description,
+        owner,
         status,
         priority,
-        due_date: dueDate || null,
+        due_date: dueDate,
+      });
+
+      const taskData = {
+        title: validatedData.title,
+        description: validatedData.description || null,
+        owner: validatedData.owner || null,
+        status: validatedData.status,
+        priority: validatedData.priority,
+        due_date: validatedData.due_date || null,
         ai_system_id: systemId || task?.ai_system_id || null,
         assessment_id: assessmentId || task?.assessment_id || null,
       };
@@ -105,12 +116,19 @@ export function TaskDialog({ open, onOpenChange, task, systemId, assessmentId, o
       onOpenChange(false);
       resetForm();
     } catch (error) {
-      console.error("Error saving task:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save task",
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save task. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

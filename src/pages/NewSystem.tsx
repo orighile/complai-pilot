@@ -9,6 +9,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
+import { z } from "zod";
+
+const systemSchema = z.object({
+  name: z.string().trim().min(1, "System name is required").max(200, "Name must be less than 200 characters"),
+  description: z.string().trim().max(2000, "Description must be less than 2000 characters").optional().or(z.literal("")),
+  owner: z.string().trim().max(100, "Owner name must be less than 100 characters").optional().or(z.literal("")),
+  business_unit: z.string().trim().max(100, "Business unit must be less than 100 characters").optional().or(z.literal("")),
+  geography: z.string().trim().max(100, "Geography must be less than 100 characters").optional().or(z.literal("")),
+  data_type: z.string().trim().max(100, "Data type must be less than 100 characters").optional().or(z.literal("")),
+  model_type: z.string().trim().max(100, "Model type must be less than 100 characters").optional().or(z.literal("")),
+  training_source: z.string().trim().max(200, "Training source must be less than 200 characters").optional().or(z.literal("")),
+  deployment_environment: z.string().trim().max(100, "Deployment environment must be less than 100 characters").optional().or(z.literal("")),
+});
 
 export default function NewSystem() {
   const navigate = useNavigate();
@@ -31,9 +44,25 @@ export default function NewSystem() {
     setLoading(true);
 
     try {
+      // Validate form data
+      const validatedData = systemSchema.parse(formData);
+
+      // Convert empty strings to null for optional fields
+      const insertData = {
+        name: validatedData.name,
+        description: validatedData.description || null,
+        owner: validatedData.owner || null,
+        business_unit: validatedData.business_unit || null,
+        geography: validatedData.geography || null,
+        data_type: validatedData.data_type || null,
+        model_type: validatedData.model_type || null,
+        training_source: validatedData.training_source || null,
+        deployment_environment: validatedData.deployment_environment || null,
+      };
+
       const { error } = await supabase
         .from("ai_systems")
-        .insert([formData]);
+        .insert([insertData]);
 
       if (error) throw error;
 
@@ -43,11 +72,19 @@ export default function NewSystem() {
       });
       navigate("/systems");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create AI system. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
